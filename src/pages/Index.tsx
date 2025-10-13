@@ -1,8 +1,17 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Shield, BarChart3, CheckCircle, MessageSquare } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const scrollToFeatures = () => {
+    document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
@@ -23,22 +32,35 @@ const Index = () => {
               Streamline complaint handling across your institution. Track, manage, and resolve issues with transparency and efficiency.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button 
-                size="lg" 
-                className="bg-gradient-to-r from-primary to-accent shadow-lg hover:opacity-90 transition-opacity"
-              >
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline">
-                Learn More
-              </Button>
+              {user ? (
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-primary to-accent shadow-lg hover:opacity-90 transition-opacity"
+                  onClick={() => signOut()}
+                >
+                  Sign Out
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    size="lg" 
+                    className="bg-gradient-to-r from-primary to-accent shadow-lg hover:opacity-90 transition-opacity"
+                    onClick={() => navigate("/register")}
+                  >
+                    Get Started
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={scrollToFeatures}>
+                    Learn More
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="container mx-auto px-4 py-20">
+      <section id="features" className="container mx-auto px-4 py-20">
         <div className="mb-16 text-center">
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
             Everything You Need
@@ -223,13 +245,16 @@ const Index = () => {
           <p className="mb-8 text-lg opacity-90">
             Transform how your institution handles complaints today
           </p>
-          <Button 
-            size="lg" 
-            variant="secondary"
-            className="shadow-lg"
-          >
-            Create Account
-          </Button>
+          {!user && (
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="shadow-lg"
+              onClick={() => navigate("/register")}
+            >
+              Create Account
+            </Button>
+          )}
         </div>
       </section>
 
