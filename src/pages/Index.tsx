@@ -3,10 +3,44 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Users, Shield, BarChart3, CheckCircle, MessageSquare } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+
+  const { data: userRole } = useQuery({
+    queryKey: ["userRole", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  useEffect(() => {
+    if (user && userRole) {
+      switch (userRole.role) {
+        case "student":
+          navigate("/student");
+          break;
+        case "faculty":
+          navigate("/faculty");
+          break;
+        case "admin":
+          navigate("/admin");
+          break;
+      }
+    }
+  }, [user, userRole, navigate]);
 
   const scrollToFeatures = () => {
     document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });

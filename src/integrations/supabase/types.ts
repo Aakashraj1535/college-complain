@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaints: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          department: string | null
+          description: string
+          id: string
+          status: Database["public"]["Enums"]["complaint_status"]
+          student_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          department?: string | null
+          description: string
+          id?: string
+          status?: Database["public"]["Enums"]["complaint_status"]
+          student_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          department?: string | null
+          description?: string
+          id?: string
+          status?: Database["public"]["Enums"]["complaint_status"]
+          student_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -74,6 +110,7 @@ export type Database = {
     }
     Enums: {
       app_role: "student" | "faculty" | "admin"
+      complaint_status: "pending" | "in_progress" | "completed" | "issued"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -202,6 +239,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["student", "faculty", "admin"],
+      complaint_status: ["pending", "in_progress", "completed", "issued"],
     },
   },
 } as const
