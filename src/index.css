@@ -43,11 +43,24 @@ All colors MUST be HSL.
     /* Gradient tokens */
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(189 94% 43%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 70%) 50%, hsl(189 94% 43%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 50%, hsl(217 91% 60% / 0.2), transparent 70%);
+    --gradient-card: linear-gradient(135deg, hsl(217 91% 60% / 0.05) 0%, hsl(189 94% 43% / 0.05) 100%);
     
     /* Shadow tokens */
     --shadow-soft: 0 2px 8px hsla(217, 91%, 60%, 0.1);
     --shadow-medium: 0 4px 16px hsla(217, 91%, 60%, 0.15);
     --shadow-strong: 0 8px 32px hsla(217, 91%, 60%, 0.2);
+    --shadow-glow: 0 0 40px hsla(217, 91%, 60%, 0.3);
+    
+    /* Glass effect tokens */
+    --glass-bg: hsla(0, 0%, 100%, 0.7);
+    --glass-border: hsla(0, 0%, 100%, 0.18);
+    
+    /* Success and warning colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5% 26%;
@@ -90,10 +103,21 @@ All colors MUST be HSL.
     
     --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(189 94% 43%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(217 91% 70%) 50%, hsl(189 94% 43%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 50%, hsl(217 91% 60% / 0.3), transparent 70%);
+    --gradient-card: linear-gradient(135deg, hsl(217 91% 60% / 0.1) 0%, hsl(189 94% 43% / 0.1) 100%);
     
     --shadow-soft: 0 2px 8px hsla(217, 91%, 60%, 0.2);
     --shadow-medium: 0 4px 16px hsla(217, 91%, 60%, 0.25);
     --shadow-strong: 0 8px 32px hsla(217, 91%, 60%, 0.3);
+    --shadow-glow: 0 0 50px hsla(217, 91%, 60%, 0.4);
+    
+    --glass-bg: hsla(222, 47%, 11%, 0.7);
+    --glass-border: hsla(217, 91%, 60%, 0.2);
+    
+    --success: 142 76% 46%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 0 0% 100%;
     
     --sidebar-background: 240 6% 10%;
     --sidebar-foreground: 240 5% 96%;
@@ -113,5 +137,32 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+  }
+  
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s ease infinite;
+  }
+  
+  @keyframes gradient {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+  
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
   }
 }

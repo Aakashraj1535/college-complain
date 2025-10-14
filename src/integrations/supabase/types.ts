@@ -14,13 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      complaint_comments: {
+        Row: {
+          comment: string
+          complaint_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          complaint_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          complaint_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_comments_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      complaint_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          complaint_id: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          complaint_id: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          complaint_id?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "complaint_history_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       complaints: {
         Row: {
           assigned_by: string | null
+          assigned_to: string | null
+          attachments: Json | null
+          category: string | null
           created_at: string
           department: string | null
           description: string
+          estimated_completion: string | null
+          feedback_comment: string | null
+          feedback_rating: number | null
           id: string
+          priority: Database["public"]["Enums"]["complaint_priority"] | null
+          reopen_count: number | null
+          resolved_at: string | null
           status: Database["public"]["Enums"]["complaint_status"]
           student_id: string
           title: string
@@ -28,10 +107,19 @@ export type Database = {
         }
         Insert: {
           assigned_by?: string | null
+          assigned_to?: string | null
+          attachments?: Json | null
+          category?: string | null
           created_at?: string
           department?: string | null
           description: string
+          estimated_completion?: string | null
+          feedback_comment?: string | null
+          feedback_rating?: number | null
           id?: string
+          priority?: Database["public"]["Enums"]["complaint_priority"] | null
+          reopen_count?: number | null
+          resolved_at?: string | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id: string
           title: string
@@ -39,16 +127,63 @@ export type Database = {
         }
         Update: {
           assigned_by?: string | null
+          assigned_to?: string | null
+          attachments?: Json | null
+          category?: string | null
           created_at?: string
           department?: string | null
           description?: string
+          estimated_completion?: string | null
+          feedback_comment?: string | null
+          feedback_rating?: number | null
           id?: string
+          priority?: Database["public"]["Enums"]["complaint_priority"] | null
+          reopen_count?: number | null
+          resolved_at?: string | null
           status?: Database["public"]["Enums"]["complaint_status"]
           student_id?: string
           title?: string
           updated_at?: string
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          complaint_id: string | null
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          complaint_id?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          complaint_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_complaint_id_fkey"
+            columns: ["complaint_id"]
+            isOneToOne: false
+            referencedRelation: "complaints"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -100,6 +235,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_complaint_id?: string
+          p_message: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -110,6 +254,7 @@ export type Database = {
     }
     Enums: {
       app_role: "student" | "faculty" | "admin"
+      complaint_priority: "low" | "medium" | "high" | "critical"
       complaint_status: "pending" | "in_progress" | "completed" | "issued"
     }
     CompositeTypes: {
@@ -239,6 +384,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["student", "faculty", "admin"],
+      complaint_priority: ["low", "medium", "high", "critical"],
       complaint_status: ["pending", "in_progress", "completed", "issued"],
     },
   },
