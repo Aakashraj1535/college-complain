@@ -97,6 +97,7 @@ export type Database = {
           feedback_comment: string | null
           feedback_rating: number | null
           id: string
+          is_anonymous: boolean | null
           priority: Database["public"]["Enums"]["complaint_priority"] | null
           reopen_count: number | null
           resolved_at: string | null
@@ -117,6 +118,7 @@ export type Database = {
           feedback_comment?: string | null
           feedback_rating?: number | null
           id?: string
+          is_anonymous?: boolean | null
           priority?: Database["public"]["Enums"]["complaint_priority"] | null
           reopen_count?: number | null
           resolved_at?: string | null
@@ -137,6 +139,7 @@ export type Database = {
           feedback_comment?: string | null
           feedback_rating?: number | null
           id?: string
+          is_anonymous?: boolean | null
           priority?: Database["public"]["Enums"]["complaint_priority"] | null
           reopen_count?: number | null
           resolved_at?: string | null

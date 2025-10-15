@@ -12,9 +12,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ComplaintTimeline } from "@/components/complaints/ComplaintTimeline";
 import { StatsCard } from "@/components/analytics/StatsCard";
-import { FileText, Clock, CheckCircle, AlertCircle, Send, LogOut } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertCircle, Send, LogOut, Upload, X, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const CATEGORIES = ["Infrastructure - Hostel", "Infrastructure - Classroom", "Infrastructure - Lab", "Academic - Course", "Academic - Exam", "Academic - Faculty", "Administrative - Fee", "Administrative - Certificate", "Administrative - Library", "IT Services", "Canteen & Mess", "Security", "Others"];
 const PRIORITIES = [
@@ -32,6 +34,9 @@ const StudentDashboard = () => {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState("medium");
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
 
   const { data: complaints = [], isLoading } = useQuery({
@@ -64,19 +69,71 @@ const StudentDashboard = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user?.id, queryClient]);
 
+  const uploadFiles = async (complaintId: string) => {
+    if (attachments.length === 0) return [];
+    setUploading(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      for (const file of attachments) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user?.id}/${complaintId}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('complaint-attachments')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('complaint-attachments')
+          .getPublicUrl(fileName);
+        
+        uploadedUrls.push(publicUrl);
+      }
+    } finally {
+      setUploading(false);
+    }
+    return uploadedUrls;
+  };
+
   const createComplaintMutation = useMutation({
     mutationFn: async (newComplaint: any) => {
       const { data, error } = await supabase.from("complaints").insert([newComplaint]).select().single();
       if (error) throw error;
+      
+      if (attachments.length > 0) {
+        const urls = await uploadFiles(data.id);
+        await supabase.from("complaints").update({ attachments: urls }).eq("id", data.id);
+      }
+      
       return data;
     },
     onSuccess: () => {
       toast({ title: "Success", description: "Your complaint has been filed successfully." });
       setTitle(""); setDescription(""); setCategory(""); setPriority("medium");
+      setIsAnonymous(false); setAttachments([]);
       queryClient.invalidateQueries({ queryKey: ["complaints"] });
     },
     onError: (error) => { toast({ title: "Error", description: error.message, variant: "destructive" }); },
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      const validFiles = newFiles.filter(file => {
+        const isValid = file.size <= 50 * 1024 * 1024; // 50MB
+        if (!isValid) {
+          toast({ title: "File too large", description: `${file.name} exceeds 50MB limit.`, variant: "destructive" });
+        }
+        return isValid;
+      });
+      setAttachments(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +141,15 @@ const StudentDashboard = () => {
       toast({ title: "Error", description: "Please fill in all fields.", variant: "destructive" });
       return;
     }
-    createComplaintMutation.mutate({ student_id: user?.id, title: title.trim(), description: description.trim(), category, priority, status: "pending" });
+    createComplaintMutation.mutate({ 
+      student_id: user?.id, 
+      title: title.trim(), 
+      description: description.trim(), 
+      category, 
+      priority, 
+      status: "pending",
+      is_anonymous: isAnonymous
+    });
   };
 
   const getStatusBadge = (status: string) => {
@@ -151,7 +216,35 @@ const StudentDashboard = () => {
                 </Select>
               </div>
               <div className="space-y-2"><label className="text-sm font-medium">Description</label><Textarea placeholder="Detailed information" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required /></div>
-              <Button type="submit" disabled={createComplaintMutation.isPending} className="w-full">{createComplaintMutation.isPending ? "Submitting..." : "Submit Complaint"}</Button>
+              
+              <div className="flex items-center space-x-2 p-3 bg-accent/30 rounded-lg">
+                <Switch id="anonymous" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
+                <Label htmlFor="anonymous" className="cursor-pointer">Submit anonymously (Admin can still view your profile)</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Attach Evidence (Images/Videos - Max 5 files, 50MB each)
+                </Label>
+                <Input type="file" accept="image/*,video/*,application/pdf" multiple onChange={handleFileChange} className="cursor-pointer" />
+                {attachments.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {attachments.map((file, idx) => (
+                      <Badge key={idx} variant="secondary" className="pl-2 pr-1 py-1">
+                        {file.name.slice(0, 20)}
+                        <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0 ml-1" onClick={() => removeFile(idx)}>
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <Button type="submit" disabled={createComplaintMutation.isPending || uploading} className="w-full">
+                {uploading ? "Uploading files..." : createComplaintMutation.isPending ? "Submitting..." : "Submit Complaint"}
+              </Button>
             </form>
           </CardContent>
         </Card>

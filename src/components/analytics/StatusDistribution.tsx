@@ -1,11 +1,36 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { useMemo } from "react";
 
-interface StatusDistributionProps {
-  data: Array<{ name: string; value: number; color: string }>;
+interface Complaint {
+  status: string;
 }
 
-export const StatusDistribution = ({ data }: StatusDistributionProps) => {
+interface StatusDistributionProps {
+  complaints: Complaint[];
+}
+
+export const StatusDistribution = ({ complaints }: StatusDistributionProps) => {
+  const chartData = useMemo(() => {
+    const statusCounts: Record<string, number> = {};
+    complaints.forEach(c => {
+      statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
+    });
+
+    const colors: Record<string, string> = {
+      pending: "hsl(var(--chart-1))",
+      in_progress: "hsl(var(--chart-2))",
+      completed: "hsl(var(--chart-3))",
+      issued: "hsl(var(--chart-4))",
+    };
+
+    return Object.entries(statusCounts).map(([name, value]) => ({
+      name: name.replace('_', ' ').charAt(0).toUpperCase() + name.replace('_', ' ').slice(1),
+      value,
+      color: colors[name] || "hsl(var(--primary))"
+    }));
+  }, [complaints]);
+
   return (
     <Card className="glass-card">
       <CardHeader>
@@ -15,7 +40,7 @@ export const StatusDistribution = ({ data }: StatusDistributionProps) => {
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -24,7 +49,7 @@ export const StatusDistribution = ({ data }: StatusDistributionProps) => {
               fill="hsl(var(--primary))"
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
@@ -38,7 +63,7 @@ export const StatusDistribution = ({ data }: StatusDistributionProps) => {
           </PieChart>
         </ResponsiveContainer>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          {data.map((item, index) => (
+          {chartData.map((item, index) => (
             <div key={index} className="flex items-center gap-2">
               <div 
                 className="w-3 h-3 rounded-full" 
