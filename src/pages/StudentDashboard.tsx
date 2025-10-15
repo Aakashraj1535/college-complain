@@ -90,13 +90,13 @@ const StudentDashboard = () => {
   const getStatusBadge = (status: string) => {
     const variants: Record<string, any> = {
       pending: { variant: "secondary", icon: Clock },
-      "in progress": { variant: "default", icon: AlertCircle },
+      in_progress: { variant: "default", icon: AlertCircle },
       completed: { variant: "default", icon: CheckCircle, className: "bg-success text-success-foreground" },
       issued: { variant: "destructive", icon: AlertCircle },
     };
     const config = variants[status] || variants.pending;
     const Icon = config.icon;
-    return <Badge variant={config.variant} className={config.className}><Icon className="h-3 w-3 mr-1" />{status}</Badge>;
+    return <Badge variant={config.variant} className={config.className}><Icon className="h-3 w-3 mr-1" />{status.replace('_', ' ')}</Badge>;
   };
 
   const getPriorityBadge = (priority: string) => {
@@ -107,7 +107,7 @@ const StudentDashboard = () => {
   const stats = {
     total: complaints.length,
     pending: complaints.filter(c => c.status === "pending").length,
-    inProgress: complaints.filter(c => c.status === "in progress").length,
+    inProgress: complaints.filter(c => c.status === "in_progress").length,
     completed: complaints.filter(c => c.status === "completed").length,
   };
 
