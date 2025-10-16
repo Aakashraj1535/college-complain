@@ -1,4 +1,4 @@
-# Welcome to your our project
+# Welcome to  our project
 
 ## Project info
 
@@ -7,11 +7,12 @@
 
 There are several ways of editing your application.
 
-**Use Lovable**
+**Use VS code**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/377599e0-34e6-4a96-83f6-c00452c48355) and start prompting.
+Simply visit the vs code platform and start coding .
+use chatgpt and gemini for ideas.
 
-Changes made via Lovable will be committed automatically to this repo.
+Changes made via VS code will be committed automatically to this repo.
 
 **Use your preferred IDE**
 
@@ -61,9 +62,9 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/377599e0-34e6-4a96-83f6-c00452c48355) and click on Share -> Publish.
+Simply open [vercel][(https://lovable.dev/projects/377599e0-34e6-4a96-83f6-c00452c48355)](https://college-complaint.vercel.app/) and click on deploy 
 
-## Can I connect a custom domain to my Lovable project?
+## Can I connect a custom domain to my  project?
 
 Yes, you can!
 
