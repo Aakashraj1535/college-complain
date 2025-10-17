@@ -67,23 +67,6 @@ const AdminDashboard = () => {
     enabled: !!user,
   });
 
-  const { data: authUsers = [] } = useQuery({
-    queryKey: ["auth-users"],
-    queryFn: async () => {
-      const studentIds = [...new Set(complaints.map(c => c.student_id))];
-      if (studentIds.length === 0) return [];
-      
-      const users = await Promise.all(
-        studentIds.map(async (id) => {
-          const { data } = await supabase.auth.admin.getUserById(id);
-          return data.user;
-        })
-      );
-      return users.filter(Boolean);
-    },
-    enabled: !!user && complaints.length > 0,
-  });
-
   const assignDepartmentMutation = useMutation({
     mutationFn: async ({ complaintId, department }: { complaintId: string; department: string }) => {
       const { error } = await supabase
@@ -103,11 +86,6 @@ const AdminDashboard = () => {
 
   const getStudentProfile = (studentId: string) => {
     return profiles.find(p => p.user_id === studentId);
-  };
-
-  const getStudentEmail = (studentId: string) => {
-    const user = authUsers.find(u => u?.id === studentId);
-    return user?.email || 'N/A';
   };
 
   const filteredComplaints = complaints.filter(c => {
@@ -224,7 +202,6 @@ const AdminDashboard = () => {
               <div className="space-y-3">
                 {filteredComplaints.map(c => {
                   const student = getStudentProfile(c.student_id);
-                  const studentEmail = getStudentEmail(c.student_id);
                   const attachments = Array.isArray(c.attachments) ? c.attachments : [];
                   return (
                     <div key={c.id} className="p-5 rounded-lg border bg-card hover:bg-accent/50 transition-all hover:shadow-md">
@@ -232,16 +209,18 @@ const AdminDashboard = () => {
                         <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">{c.title}</h3>
                           <div className="flex flex-wrap items-center gap-3 text-sm mb-2">
-                            {!c.is_anonymous && (
+                            {!c.is_anonymous && student && (
                               <>
                                 <div className="flex items-center gap-1.5 text-foreground bg-primary/10 px-2 py-1 rounded">
                                   <User className="h-3.5 w-3.5" />
-                                  <span className="font-medium">{student?.name || 'N/A'}</span>
+                                  <span className="font-medium">{student.name || 'N/A'}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 text-muted-foreground">
-                                  <Mail className="h-3.5 w-3.5" />
-                                  <span>{studentEmail}</span>
-                                </div>
+                                {student.email && (
+                                  <div className="flex items-center gap-1.5 text-muted-foreground">
+                                    <Mail className="h-3.5 w-3.5" />
+                                    <span>{student.email}</span>
+                                  </div>
+                                )}
                               </>
                             )}
                             {c.is_anonymous && (
@@ -268,24 +247,35 @@ const AdminDashboard = () => {
                             Evidence Attachments ({attachments.length})
                           </p>
                           <div className="flex flex-wrap gap-2">
-                            {attachments.map((url: string, idx: number) => (
-                              <a
-                                key={idx}
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group relative overflow-hidden rounded-lg border hover:border-primary transition-all"
-                              >
-                                <img 
-                                  src={url} 
-                                  alt={`Evidence ${idx + 1}`}
-                                  className="h-20 w-20 object-cover group-hover:scale-110 transition-transform"
-                                  onError={(e) => {
-                                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23ddd" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EFile%3C/text%3E%3C/svg%3E';
-                                  }}
-                                />
-                              </a>
-                            ))}
+                            {attachments.map((url: string, idx: number) => {
+                              // Check if it's a valid URL string
+                              const imageUrl = typeof url === 'string' ? url : '';
+                              if (!imageUrl) return null;
+                              
+                              return (
+                                <a
+                                  key={idx}
+                                  href={imageUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="group relative overflow-hidden rounded-lg border hover:border-primary transition-all"
+                                >
+                                  <img 
+                                    src={imageUrl} 
+                                    alt={`Evidence ${idx + 1}`}
+                                    className="h-20 w-20 object-cover group-hover:scale-110 transition-transform"
+                                    onError={(e) => {
+                                      const target = e.currentTarget;
+                                      target.style.display = 'none';
+                                      const parent = target.parentElement;
+                                      if (parent) {
+                                        parent.innerHTML = '<div class="h-20 w-20 flex items-center justify-center bg-muted text-muted-foreground text-xs">File</div>';
+                                      }
+                                    }}
+                                  />
+                                </a>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
