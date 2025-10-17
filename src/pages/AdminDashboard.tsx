@@ -67,6 +67,23 @@ const AdminDashboard = () => {
     enabled: !!user,
   });
 
+  const { data: authUsers = [] } = useQuery({
+    queryKey: ["auth-users"],
+    queryFn: async () => {
+      const studentIds = [...new Set(complaints.map(c => c.student_id))];
+      if (studentIds.length === 0) return [];
+      
+      const users = await Promise.all(
+        studentIds.map(async (id) => {
+          const { data } = await supabase.auth.admin.getUserById(id);
+          return data.user;
+        })
+      );
+      return users.filter(Boolean);
+    },
+    enabled: !!user && complaints.length > 0,
+  });
+
   const assignDepartmentMutation = useMutation({
     mutationFn: async ({ complaintId, department }: { complaintId: string; department: string }) => {
       const { error } = await supabase
@@ -86,6 +103,11 @@ const AdminDashboard = () => {
 
   const getStudentProfile = (studentId: string) => {
     return profiles.find(p => p.user_id === studentId);
+  };
+
+  const getStudentEmail = (studentId: string) => {
+    const user = authUsers.find(u => u?.id === studentId);
+    return user?.email || 'N/A';
   };
 
   const filteredComplaints = complaints.filter(c => {
@@ -202,27 +224,33 @@ const AdminDashboard = () => {
               <div className="space-y-3">
                 {filteredComplaints.map(c => {
                   const student = getStudentProfile(c.student_id);
+                  const studentEmail = getStudentEmail(c.student_id);
+                  const attachments = Array.isArray(c.attachments) ? c.attachments : [];
                   return (
-                    <div key={c.id} className="p-4 rounded-lg border bg-card hover:bg-accent/50 transition-all hover:shadow-md">
+                    <div key={c.id} className="p-5 rounded-lg border bg-card hover:bg-accent/50 transition-all hover:shadow-md">
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <h3 className="font-semibold mb-1">{c.title}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                            <Calendar className="h-3 w-3" />
-                            <span>{new Date(c.created_at).toLocaleString()}</span>
-                            {c.is_anonymous ? (
-                              <Badge variant="outline" className="ml-2">Anonymous</Badge>
-                            ) : student && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="ml-2 h-6 px-2"
-                                onClick={() => setSelectedStudent(student)}
-                              >
-                                <User className="h-3 w-3 mr-1" />
-                                View Student
-                              </Button>
+                          <h3 className="font-semibold text-lg mb-2">{c.title}</h3>
+                          <div className="flex flex-wrap items-center gap-3 text-sm mb-2">
+                            {!c.is_anonymous && (
+                              <>
+                                <div className="flex items-center gap-1.5 text-foreground bg-primary/10 px-2 py-1 rounded">
+                                  <User className="h-3.5 w-3.5" />
+                                  <span className="font-medium">{student?.name || 'N/A'}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-muted-foreground">
+                                  <Mail className="h-3.5 w-3.5" />
+                                  <span>{studentEmail}</span>
+                                </div>
+                              </>
                             )}
+                            {c.is_anonymous && (
+                              <Badge variant="outline" className="bg-muted">Anonymous</Badge>
+                            )}
+                            <div className="flex items-center gap-1 text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span>{new Date(c.created_at).toLocaleString()}</span>
+                            </div>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -230,7 +258,38 @@ const AdminDashboard = () => {
                           {getStatusBadge(c.status)}
                         </div>
                       </div>
+                      
                       <p className="text-sm text-muted-foreground mb-3">{c.description}</p>
+                      
+                      {attachments.length > 0 && (
+                        <div className="mb-3">
+                          <p className="text-xs font-medium mb-2 flex items-center gap-1">
+                            <FileText className="h-3 w-3" />
+                            Evidence Attachments ({attachments.length})
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {attachments.map((url: string, idx: number) => (
+                              <a
+                                key={idx}
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative overflow-hidden rounded-lg border hover:border-primary transition-all"
+                              >
+                                <img 
+                                  src={url} 
+                                  alt={`Evidence ${idx + 1}`}
+                                  className="h-20 w-20 object-cover group-hover:scale-110 transition-transform"
+                                  onError={(e) => {
+                                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23ddd" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EFile%3C/text%3E%3C/svg%3E';
+                                  }}
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-muted-foreground">{c.category}</span>
                         {!c.department ? (

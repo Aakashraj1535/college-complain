@@ -13,6 +13,24 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
+  // Fetch real statistics from database
+  const { data: complaints = [] } = useQuery({
+    queryKey: ["homepage-complaints"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("complaints")
+        .select("status");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const completedComplaints = complaints.filter(c => c.status === "completed").length;
+  const totalComplaints = complaints.length;
+  const satisfactionRate = totalComplaints > 0 
+    ? Math.round((completedComplaints / totalComplaints) * 100) 
+    : 0;
+
   const { data: userRole } = useQuery({
     queryKey: ["userRole", user?.id],
     queryFn: async () => {
@@ -105,13 +123,13 @@ const Index = () => {
           <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto pt-8">
             <div className="glass-card rounded-xl p-6 hover-lift">
               <div className="text-4xl font-bold mb-2">
-                <StatsCounter value={1250} suffix="+" />
+                <StatsCounter value={completedComplaints} suffix="+" />
               </div>
               <p className="text-sm text-muted-foreground">Complaints Resolved</p>
             </div>
             <div className="glass-card rounded-xl p-6 hover-lift">
               <div className="text-4xl font-bold mb-2">
-                <StatsCounter value={98} suffix="%" />
+                <StatsCounter value={satisfactionRate} suffix="%" />
               </div>
               <p className="text-sm text-muted-foreground">Satisfaction Rate</p>
             </div>

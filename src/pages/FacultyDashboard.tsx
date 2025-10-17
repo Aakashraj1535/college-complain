@@ -8,6 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
+import { StatsCard } from "@/components/analytics/StatsCard";
+import { StatusDistribution } from "@/components/analytics/StatusDistribution";
+import { CheckCircle, Clock, TrendingUp, LogOut, AlertCircle, FileText } from "lucide-react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 export default function FacultyDashboard() {
   const { user, signOut } = useAuth();
@@ -99,18 +103,62 @@ export default function FacultyDashboard() {
     { value: "issued", label: "Issued" },
   ];
 
+  const stats = {
+    total: complaints?.length || 0,
+    pending: complaints?.filter(c => c.status === "pending").length || 0,
+    inProgress: complaints?.filter(c => c.status === "in_progress").length || 0,
+    completed: complaints?.filter(c => c.status === "completed").length || 0,
+  };
+
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Faculty Dashboard</h1>
-            <p className="text-muted-foreground">Department: {profile?.department || "Loading..."}</p>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Faculty Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button onClick={signOut} variant="ghost" size="sm"><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
           </div>
-          <Button onClick={signOut} variant="outline">Sign Out</Button>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        <Card className="glass-card border-primary/20">
+          <CardHeader>
+            <CardTitle className="text-lg">Your Department</CardTitle>
+            <p className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              {profile?.department || "Loading..."}
+            </p>
+          </CardHeader>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <StatsCard title="Total Assigned" value={stats.total} icon={FileText} className="hover:scale-105 transition-transform" />
+          <StatsCard title="Pending" value={stats.pending} icon={Clock} className="hover:scale-105 transition-transform" />
+          <StatsCard title="In Progress" value={stats.inProgress} icon={TrendingUp} className="hover:scale-105 transition-transform" />
+          <StatsCard title="Completed" value={stats.completed} icon={CheckCircle} className="hover:scale-105 transition-transform" />
         </div>
 
-        <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {complaints && <StatusDistribution complaints={complaints} />}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="p-3 rounded-lg bg-primary/10 flex items-center justify-between">
+                <span className="text-sm">High Priority Issues</span>
+                <Badge variant="destructive">{complaints?.filter(c => c.priority === 'high' || c.priority === 'critical').length || 0}</Badge>
+              </div>
+              <div className="p-3 rounded-lg bg-secondary/10 flex items-center justify-between">
+                <span className="text-sm">Requires Attention</span>
+                <Badge variant="secondary">{stats.pending}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card className="glass-card shadow-glow">
           <CardHeader>
             <CardTitle>Department Complaints</CardTitle>
             <CardDescription>Manage and update complaint statuses</CardDescription>
@@ -174,7 +222,7 @@ export default function FacultyDashboard() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }
