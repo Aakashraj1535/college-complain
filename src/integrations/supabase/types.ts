@@ -257,6 +257,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      suggest_department: {
+        Args: { complaint_description: string; complaint_title: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "student" | "faculty" | "admin"

@@ -12,12 +12,16 @@ import { StatsCard } from "@/components/analytics/StatsCard";
 import { StatusDistribution } from "@/components/analytics/StatusDistribution";
 import { CheckCircle, Clock, TrendingUp, LogOut, AlertCircle, FileText } from "lucide-react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { CommentSection } from "@/components/complaints/CommentSection";
+import { ExportButton } from "@/components/complaints/ExportButton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function FacultyDashboard() {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedStatuses, setSelectedStatuses] = useState<Record<string, "pending" | "in_progress" | "completed" | "issued">>({});
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -160,8 +164,13 @@ export default function FacultyDashboard() {
 
         <Card className="glass-card shadow-glow">
           <CardHeader>
-            <CardTitle>Department Complaints</CardTitle>
-            <CardDescription>Manage and update complaint statuses</CardDescription>
+            <div className="flex justify-between items-center mb-2">
+              <div>
+                <CardTitle>Department Complaints</CardTitle>
+                <CardDescription>Manage and update complaint statuses</CardDescription>
+              </div>
+              {complaints && <ExportButton complaints={complaints} filename="dept-complaints" />}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -205,13 +214,22 @@ export default function FacultyDashboard() {
                         </Select>
                       </TableCell>
                       <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => handleUpdateStatus(complaint.id)}
-                          disabled={updateStatusMutation.isPending}
-                        >
-                          Update
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => handleUpdateStatus(complaint.id)}
+                            disabled={updateStatusMutation.isPending}
+                          >
+                            Update
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedComplaint(complaint)}
+                          >
+                            Details
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -223,6 +241,19 @@ export default function FacultyDashboard() {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!selectedComplaint} onOpenChange={() => setSelectedComplaint(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{selectedComplaint?.title}</DialogTitle></DialogHeader>
+          {selectedComplaint && (
+            <div className="space-y-4">
+              <div><p className="text-sm">{selectedComplaint.description}</p></div>
+              <div className="flex gap-2">{getStatusBadge(selectedComplaint.status)}</div>
+              <CommentSection complaintId={selectedComplaint.id} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

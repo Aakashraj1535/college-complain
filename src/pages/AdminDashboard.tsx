@@ -8,6 +8,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { CommentSection } from "@/components/complaints/CommentSection";
+import { ExportButton } from "@/components/complaints/ExportButton";
 import { StatsCard } from "@/components/analytics/StatsCard";
 import { ComplaintChart } from "@/components/analytics/ComplaintChart";
 import { StatusDistribution } from "@/components/analytics/StatusDistribution";
@@ -153,7 +155,10 @@ const AdminDashboard = () => {
 
         <Card className="glass-card shadow-glow">
           <CardHeader>
-            <CardTitle>All Complaints</CardTitle>
+            <div className="flex justify-between items-center mb-4">
+              <CardTitle>All Complaints</CardTitle>
+              <ExportButton complaints={filteredComplaints} filename="all-complaints" />
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -280,7 +285,7 @@ const AdminDashboard = () => {
                         </div>
                       )}
                       
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-between items-center gap-2">
                         <span className="text-xs text-muted-foreground">{c.category}</span>
                         {!c.department ? (
                           <Select onValueChange={(dept) => assignDepartmentMutation.mutate({ complaintId: c.id, department: dept })}>
@@ -288,7 +293,16 @@ const AdminDashboard = () => {
                             <SelectContent>{DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}</SelectContent>
                           </Select>
                         ) : (
-                          <Badge variant="outline">Dept: {c.department}</Badge>
+                          <div className="flex gap-2 items-center">
+                            <Badge variant="outline">Dept: {c.department}</Badge>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setSelectedComplaint(c)}
+                            >
+                              View Details
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -299,6 +313,18 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </main>
+
+      <Dialog open={!!selectedComplaint} onOpenChange={() => setSelectedComplaint(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{selectedComplaint?.title}</DialogTitle></DialogHeader>
+          {selectedComplaint && (
+            <div className="space-y-4">
+              <div><p className="text-sm text-muted-foreground">{selectedComplaint.description}</p></div>
+              <CommentSection complaintId={selectedComplaint.id} />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
         <DialogContent>

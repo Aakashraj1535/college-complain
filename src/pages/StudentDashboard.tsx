@@ -11,6 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { ComplaintTimeline } from "@/components/complaints/ComplaintTimeline";
+import { CommentSection } from "@/components/complaints/CommentSection";
+import { RatingDialog } from "@/components/complaints/RatingDialog";
+import { ExportButton } from "@/components/complaints/ExportButton";
+import { DuplicateWarning } from "@/components/complaints/DuplicateWarning";
 import { StatsCard } from "@/components/analytics/StatsCard";
 import { FileText, Clock, CheckCircle, AlertCircle, Send, LogOut, Upload, X, Eye } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +42,8 @@ const StudentDashboard = () => {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [complaintToRate, setComplaintToRate] = useState<any>(null);
 
   const { data: complaints = [], isLoading } = useQuery({
     queryKey: ["complaints", user?.id],
@@ -98,7 +104,15 @@ const StudentDashboard = () => {
 
   const createComplaintMutation = useMutation({
     mutationFn: async (newComplaint: any) => {
-      const { data, error } = await supabase.from("complaints").insert([newComplaint]).select().single();
+      // Get auto-suggested department
+      const { data: suggestedDept } = await supabase
+        .rpc("suggest_department", {
+          complaint_title: newComplaint.title,
+          complaint_description: newComplaint.description
+        });
+
+      const complaintWithDept = { ...newComplaint, department: suggestedDept };
+      const { data, error } = await supabase.from("complaints").insert([complaintWithDept]).select().single();
       if (error) throw error;
       
       if (attachments.length > 0) {
@@ -217,6 +231,10 @@ const StudentDashboard = () => {
               </div>
               <div className="space-y-2"><label className="text-sm font-medium">Description</label><Textarea placeholder="Detailed information" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} required /></div>
               
+              {title && description && (
+                <DuplicateWarning title={title} description={description} />
+              )}
+              
               <div className="flex items-center space-x-2 p-3 bg-accent/30 rounded-lg">
                 <Switch id="anonymous" checked={isAnonymous} onCheckedChange={setIsAnonymous} />
                 <Label htmlFor="anonymous" className="cursor-pointer">Submit anonymously (Admin can still view your profile)</Label>
@@ -250,12 +268,36 @@ const StudentDashboard = () => {
         </Card>
 
         <Card className="glass-card shadow-glow">
-          <CardHeader><CardTitle>My Complaints</CardTitle></CardHeader>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>My Complaints</CardTitle>
+              <ExportButton complaints={complaints} filename="my-complaints" />
+            </div>
+          </CardHeader>
           <CardContent>
             {isLoading ? <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div> : complaints.length === 0 ? <p className="text-center text-muted-foreground py-8">No complaints yet.</p> :
               <div className="space-y-3">
                 {complaints.map(c => <div key={c.id} onClick={() => setSelectedComplaint(c)} className="p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-all hover:shadow-md">
-                  <div className="flex justify-between items-start mb-2"><h3 className="font-semibold">{c.title}</h3><div className="flex gap-2">{getPriorityBadge(c.priority)}{getStatusBadge(c.status)}</div></div>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold">{c.title}</h3>
+                    <div className="flex gap-2">
+                      {getPriorityBadge(c.priority)}
+                      {getStatusBadge(c.status)}
+                      {c.status === "completed" && !c.feedback_rating && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setComplaintToRate(c);
+                            setRatingDialogOpen(true);
+                          }}
+                        >
+                          Rate
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                   <p className="text-sm text-muted-foreground mb-2">{c.description}</p>
                   <div className="flex justify-between text-xs text-muted-foreground"><span>{c.category}</span>{c.department && <span>Dept: {c.department}</span>}<span>{new Date(c.created_at).toLocaleDateString()}</span></div>
                 </div>)}
@@ -272,9 +314,21 @@ const StudentDashboard = () => {
             <div className="flex gap-2">{selectedComplaint && getPriorityBadge(selectedComplaint.priority)}{selectedComplaint && getStatusBadge(selectedComplaint.status)}</div>
             <div><h4 className="font-semibold mb-2">Description</h4><p className="text-sm text-muted-foreground">{selectedComplaint?.description}</p></div>
             <ComplaintTimeline history={history} />
+            {selectedComplaint && (
+              <CommentSection complaintId={selectedComplaint.id} />
+            )}
           </div>
         </DialogContent>
       </Dialog>
+
+      {complaintToRate && (
+        <RatingDialog
+          complaintId={complaintToRate.id}
+          complaintTitle={complaintToRate.title}
+          open={ratingDialogOpen}
+          onOpenChange={setRatingDialogOpen}
+        />
+      )}
     </div>
   );
 };
