@@ -301,6 +301,32 @@ const StudentDashboard = () => {
                     </div>
                   </div>
                   <p className="text-sm text-muted-foreground mb-2">{c.description}</p>
+                  {c.attachments && Array.isArray(c.attachments) && c.attachments.length > 0 && (
+                    <div className="mb-2">
+                      <div className="flex flex-wrap gap-2">
+                        {c.attachments.map((url: string, idx: number) => {
+                          if (typeof url !== 'string' || !url) return null;
+                          const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+                          
+                          if (isImage) {
+                            return (
+                              <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded border hover:border-primary transition-all" title="View">
+                                <img src={url} alt={`Attachment ${idx + 1}`} className="h-16 w-16 object-cover group-hover:scale-110 transition-transform" onError={(e) => { e.currentTarget.className = 'hidden'; }} />
+                              </a>
+                            );
+                          } else {
+                            const fileExt = url.split('.').pop()?.toUpperCase() || 'FILE';
+                            return (
+                              <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-2 py-1 rounded border hover:border-primary transition-all bg-muted/50 text-xs">
+                                <FileText className="h-4 w-4 text-primary" />
+                                <span>{fileExt}</span>
+                              </a>
+                            );
+                          }
+                        })}
+                      </div>
+                    </div>
+                  )}
                   <div className="flex justify-between text-xs text-muted-foreground"><span>{c.category}</span>{c.department && <span>Dept: {c.department}</span>}<span>{new Date(c.created_at).toLocaleDateString()}</span></div>
                 </div>)}
               </div>

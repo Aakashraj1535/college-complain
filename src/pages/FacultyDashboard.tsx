@@ -191,9 +191,37 @@ export default function FacultyDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {complaints.map((complaint) => (
+                  {complaints.map((complaint) => {
+                    const attachments = Array.isArray(complaint.attachments) ? complaint.attachments : [];
+                    return (
                     <TableRow key={complaint.id}>
-                      <TableCell className="font-medium">{complaint.title}</TableCell>
+                      <TableCell className="font-medium">
+                        {complaint.title}
+                        {attachments.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {attachments.map((url: string, idx: number) => {
+                              if (typeof url !== 'string' || !url) return null;
+                              const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+                              
+                              if (isImage) {
+                                return (
+                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="inline-block border rounded hover:border-primary" title="View">
+                                    <img src={url} alt={`Attachment ${idx + 1}`} className="h-12 w-12 object-cover" onError={(e) => { e.currentTarget.className = 'hidden'; }} />
+                                  </a>
+                                );
+                              } else {
+                                const fileExt = url.split('.').pop()?.toUpperCase() || 'FILE';
+                                return (
+                                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded border bg-muted/50 text-[10px]">
+                                    <FileText className="h-3 w-3" />
+                                    {fileExt}
+                                  </a>
+                                );
+                              }
+                            })}
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="max-w-xs truncate">{complaint.description}</TableCell>
                       <TableCell>{getStatusBadge(complaint.status)}</TableCell>
                       <TableCell>
@@ -242,7 +270,8 @@ export default function FacultyDashboard() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  );
+                  })}
                 </TableBody>
               </Table>
             ) : (

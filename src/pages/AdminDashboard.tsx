@@ -255,33 +255,52 @@ const AdminDashboard = () => {
                           </p>
                           <div className="flex flex-wrap gap-2">
                             {attachments.map((url: string, idx: number) => {
-                              // Check if it's a valid URL string
-                              const imageUrl = typeof url === 'string' ? url : '';
-                              if (!imageUrl) return null;
+                              if (typeof url !== 'string' || !url) return null;
                               
-                              return (
-                                <a
-                                  key={idx}
-                                  href={imageUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="group relative overflow-hidden rounded-lg border hover:border-primary transition-all"
-                                >
-                                  <img 
-                                    src={imageUrl} 
-                                    alt={`Evidence ${idx + 1}`}
-                                    className="h-20 w-20 object-cover group-hover:scale-110 transition-transform"
-                                    onError={(e) => {
-                                      const target = e.currentTarget;
-                                      target.style.display = 'none';
-                                      const parent = target.parentElement;
-                                      if (parent) {
-                                        parent.innerHTML = '<div class="h-20 w-20 flex items-center justify-center bg-muted text-muted-foreground text-xs">File</div>';
-                                      }
-                                    }}
-                                  />
-                                </a>
-                              );
+                              const isImage = /\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i.test(url);
+                              
+                              if (isImage) {
+                                return (
+                                  <a
+                                    key={idx}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group relative overflow-hidden rounded-lg border hover:border-primary transition-all"
+                                    title="Click to view full size"
+                                  >
+                                    <img 
+                                      src={url} 
+                                      alt={`Evidence ${idx + 1}`}
+                                      className="h-24 w-24 object-cover group-hover:scale-110 transition-transform"
+                                      onError={(e) => {
+                                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"/>';
+                                        e.currentTarget.className = 'hidden';
+                                      }}
+                                    />
+                                  </a>
+                                );
+                              } else {
+                                const fileName = url.split('/').pop()?.split('?')[0] || 'Document';
+                                const fileExt = fileName.split('.').pop()?.toUpperCase() || 'FILE';
+                                
+                                return (
+                                  <a
+                                    key={idx}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg border hover:border-primary transition-all bg-muted/50 hover:bg-muted"
+                                    title={`View ${fileName}`}
+                                  >
+                                    <FileText className="h-5 w-5 text-primary" />
+                                    <div className="flex flex-col">
+                                      <span className="text-xs font-medium">{fileExt}</span>
+                                      <span className="text-[10px] text-muted-foreground">View File</span>
+                                    </div>
+                                  </a>
+                                );
+                              }
                             })}
                           </div>
                         </div>
