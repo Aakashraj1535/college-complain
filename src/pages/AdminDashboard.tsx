@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const DEPARTMENTS = [
   "Computer Science & Engineering",
@@ -134,6 +135,7 @@ const AdminDashboard = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Admin Dashboard</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
             <Button onClick={signOut} variant="ghost" size="sm"><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
           </div>
@@ -211,10 +213,10 @@ const AdminDashboard = () => {
                   return (
                     <div key={c.id} className="p-5 rounded-lg border bg-card hover:bg-accent/50 transition-all hover:shadow-md">
                       <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
+                          <div className="flex-1">
                           <h3 className="font-semibold text-lg mb-2">{c.title}</h3>
                           <div className="flex flex-wrap items-center gap-3 text-sm mb-2">
-                            {!c.is_anonymous && student && (
+                            {student && (
                               <>
                                 <div className="flex items-center gap-1.5 text-foreground bg-primary/10 px-2 py-1 rounded">
                                   <User className="h-3.5 w-3.5" />
@@ -229,7 +231,7 @@ const AdminDashboard = () => {
                               </>
                             )}
                             {c.is_anonymous && (
-                              <Badge variant="outline" className="bg-muted">Anonymous</Badge>
+                              <Badge variant="secondary" className="bg-muted">Anonymous Complaint</Badge>
                             )}
                             <div className="flex items-center gap-1 text-muted-foreground">
                               <Calendar className="h-3.5 w-3.5" />

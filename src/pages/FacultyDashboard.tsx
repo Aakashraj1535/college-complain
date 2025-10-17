@@ -15,6 +15,7 @@ import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { CommentSection } from "@/components/complaints/CommentSection";
 import { ExportButton } from "@/components/complaints/ExportButton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function FacultyDashboard() {
   const { user, signOut } = useAuth();
@@ -120,6 +121,7 @@ export default function FacultyDashboard() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Faculty Dashboard</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
             <Button onClick={signOut} variant="ghost" size="sm"><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
           </div>
@@ -182,6 +184,7 @@ export default function FacultyDashboard() {
                     <TableHead>Title</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Current Status</TableHead>
+                    <TableHead>Submitter</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Update Status</TableHead>
                     <TableHead>Action</TableHead>
@@ -193,6 +196,13 @@ export default function FacultyDashboard() {
                       <TableCell className="font-medium">{complaint.title}</TableCell>
                       <TableCell className="max-w-xs truncate">{complaint.description}</TableCell>
                       <TableCell>{getStatusBadge(complaint.status)}</TableCell>
+                      <TableCell>
+                        {complaint.is_anonymous ? (
+                          <Badge variant="outline" className="bg-muted">Anonymous</Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Hidden</span>
+                        )}
+                      </TableCell>
                       <TableCell>{new Date(complaint.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Select
@@ -247,6 +257,14 @@ export default function FacultyDashboard() {
           <DialogHeader><DialogTitle>{selectedComplaint?.title}</DialogTitle></DialogHeader>
           {selectedComplaint && (
             <div className="space-y-4">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium mb-1">Submitter</p>
+                {selectedComplaint.is_anonymous ? (
+                  <Badge variant="outline" className="bg-muted">Anonymous Complaint</Badge>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Information hidden for privacy</p>
+                )}
+              </div>
               <div><p className="text-sm">{selectedComplaint.description}</p></div>
               <div className="flex gap-2">{getStatusBadge(selectedComplaint.status)}</div>
               <CommentSection complaintId={selectedComplaint.id} />

@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const CATEGORIES = ["Infrastructure - Hostel", "Infrastructure - Classroom", "Infrastructure - Lab", "Academic - Course", "Academic - Exam", "Academic - Faculty", "Administrative - Fee", "Administrative - Certificate", "Administrative - Library", "IT Services", "Canteen & Mess", "Security", "Others"];
 const PRIORITIES = [
@@ -196,6 +197,7 @@ const StudentDashboard = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Student Dashboard</h1>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationBell />
             <Button onClick={signOut} variant="ghost" size="sm"><LogOut className="h-4 w-4 mr-2" />Sign Out</Button>
           </div>
