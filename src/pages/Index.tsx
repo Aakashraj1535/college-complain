@@ -120,26 +120,7 @@ const Index = () => {
           </p>
           
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto pt-8">
-            <div className="glass-card rounded-xl p-6 hover-lift">
-              <div className="text-4xl font-bold mb-2">
-                <StatsCounter value={completedComplaints} suffix="+" />
-              </div>
-              <p className="text-sm text-muted-foreground">Complaints Resolved</p>
-            </div>
-            <div className="glass-card rounded-xl p-6 hover-lift">
-              <div className="text-4xl font-bold mb-2">
-                <StatsCounter value={satisfactionRate} suffix="%" />
-              </div>
-              <p className="text-sm text-muted-foreground">Satisfaction Rate</p>
-            </div>
-            <div className="glass-card rounded-xl p-6 hover-lift">
-              <div className="text-4xl font-bold mb-2">
-                <StatsCounter value={24} />
-              </div>
-              <p className="text-sm text-muted-foreground">Avg. Hours to Resolve</p>
-            </div>
-          </div>
+          
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             {user ? (

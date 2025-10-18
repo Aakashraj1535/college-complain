@@ -102,7 +102,7 @@ export default function Register() {
               <Input
                 id="name"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Enter Your Full Name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
