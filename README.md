@@ -1,16 +1,20 @@
 # Welcome to  our project
 
 ## Project info
-
+College Complain Management is a web application designed to manage, track, and resolve complaints efficiently within a college environment.
 
 ## How can I edit this code?
 
 There are several ways of editing your application.
 
-**Use VS code**
 
-Simply visit the vs code platform and start coding .
-use chatgpt and gemini for ideas.
+1. Using VS Code
+
+Open the project in VS Code.
+
+Make edits and changes.
+
+Commit your changes to the repository using Git.
 
 Changes made via VS code will be committed automatically to this repo.
 
@@ -62,7 +66,10 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [vercel][(https://lovable.dev/projects/377599e0-34e6-4a96-83f6-c00452c48355)](https://college-complaint.vercel.app/) and click on deploy 
+Deploy this project easily with Vercel:
+
+Visit Vercel
+ and follow the steps to deploy.
 
 ## Can I connect a custom domain to my  project?
 
@@ -70,4 +77,3 @@ Yes, you can!
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
